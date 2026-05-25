@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: AudioTranscriberAI Transcriptions API
+  version: 0.1.0
+paths:
+  /api/transcriptions:
+    post:
+      summary: Upload an audio file and start transcription processing
+      operationId: uploadTranscription
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: MP3, WAV, or M4A audio file
+      responses:
+        "202":
+          description: Upload accepted and processing started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptionAcceptedResponse"
+        "400":
+          description: Invalid upload
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Unexpected server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /api/transcriptions/{id}:
+    get:
+      summary: Get transcription status and metadata
+      operationId: getTranscriptionStatus
+      parameters:
+        - $ref: "#/components/parameters/TranscriptionId"
+      responses:
+        "200":
+          description: Transcription status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptionStatusResponse"
+        "404":
+          description: Transcription not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /api/transcriptions/{id}/raw:
+    get:
+      summary: Get raw transcription text
+      operationId: getRawTranscript
+      parameters:
+        - $ref: "#/components/parameters/TranscriptionId"
+      responses:
+        "200":
+          description: Raw transcript text
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: Transcription not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Raw transcript is not available yet or processing failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /api/transcriptions/{id}/improved:
+    get:
+      summary: Get improved transcription text
+      operationId: getImprovedTranscript
+      parameters:
+        - $ref: "#/components/parameters/TranscriptionId"
+      responses:
+        "200":
+          description: Improved transcript text
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: Transcription not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Improved transcript is not available yet or processing failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /api/transcriptions/{id}/download:
+    get:
+      summary: Download raw or improved transcript as Markdown
+      operationId: downloadTranscript
+      parameters:
+        - $ref: "#/components/parameters/TranscriptionId"
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [raw, improved]
+      responses:
+        "200":
+          description: Downloadable Markdown transcript file
+          content:
+            text/markdown:
+              schema:
+                type: string
+        "400":
+          description: Invalid download type or format
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Transcription not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Requested transcript is not available yet or processing failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+components:
+  parameters:
+    TranscriptionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Transcription job identifier
+
+  schemas:
+    TranscriptionAcceptedResponse:
+      type: object
+      required:
+        - id
+        - status
+        - statusUrl
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/TranscriptionStatus"
+        statusUrl:
+          type: string
+
+    TranscriptionStatusResponse:
+      type: object
+      required:
+        - id
+        - status
+        - originalFileName
+        - format
+        - sizeBytes
+        - createdAtUtc
+        - updatedAtUtc
+        - links
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/TranscriptionStatus"
+        originalFileName:
+          type: string
+        format:
+          type: string
+          enum: [mp3, wav, m4a]
+        sizeBytes:
+          type: integer
+          format: int64
+        createdAtUtc:
+          type: string
+          format: date-time
+        updatedAtUtc:
+          type: string
+          format: date-time
+        failureMessage:
+          type: string
+          nullable: true
+        links:
+          type: object
+          properties:
+            raw:
+              type: string
+              nullable: true
+            improved:
+              type: string
+              nullable: true
+            downloadRaw:
+              type: string
+              nullable: true
+            downloadImproved:
+              type: string
+              nullable: true
+
+    TranscriptionStatus:
+      type: string
+      enum:
+        - Pending
+        - Processing
+        - Completed
+        - Failed
+
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        traceId:
+          type: string
