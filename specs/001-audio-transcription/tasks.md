@@ -92,17 +92,17 @@ description: "Implementation tasks for 001-audio-transcription"
 
 ### Tests for User Story 2
 
-- [ ] T037 [P] [US2] Add transcript improvement prompt tests in `tests/AudioTranscriberAI.Tests/Infrastructure/OpenAI/OpenAITranscriptImproverPromptTests.cs`
-- [ ] T038 [P] [US2] Add transcript integrity tests for preserving names, numbers, claims, and `[unclear]` markers in `tests/AudioTranscriberAI.Tests/Features/Transcriptions/TranscriptIntegrityTests.cs`
-- [ ] T039 [P] [US2] Add improved transcript endpoint integration tests in `tests/AudioTranscriberAI.Tests/Integration/ImprovedTranscriptTests.cs`
+- [X] T037 [P] [US2] Add transcript improvement prompt tests in `tests/AudioTranscriberAI.Tests/Infrastructure/OpenAI/OpenAITranscriptImproverPromptTests.cs`
+- [X] T038 [P] [US2] Add transcript integrity tests for preserving names, numbers, claims, and `[unclear]` markers in `tests/AudioTranscriberAI.Tests/Features/Transcriptions/TranscriptIntegrityTests.cs`
+- [X] T039 [P] [US2] Add improved transcript endpoint integration tests in `tests/AudioTranscriberAI.Tests/Integration/ImprovedTranscriptTests.cs`
 
 ### Implementation for User Story 2
 
-- [ ] T040 [US2] Implement OpenAI text improvement adapter in `src/AudioTranscriberAI.Api/Infrastructure/OpenAI/OpenAITranscriptImprover.cs`
-- [ ] T041 [US2] Add transcript improvement prompt builder in `src/AudioTranscriberAI.Api/Infrastructure/OpenAI/TranscriptImprovementPromptBuilder.cs`
-- [ ] T042 [US2] Extend `TranscriptionJobProcessor` in `src/AudioTranscriberAI.Api/Features/Transcriptions/Shared/TranscriptionJobProcessor.cs` to persist `improved.txt` after raw transcription succeeds
-- [ ] T043 [US2] Implement improved transcript endpoint `GET /api/transcriptions/{id}/improved` in `src/AudioTranscriberAI.Api/Features/Transcriptions/GetImprovedTranscript/GetImprovedTranscriptEndpoint.cs`
-- [ ] T044 [US2] Register US2 concrete services and endpoint in `src/AudioTranscriberAI.Api/Program.cs`
+- [X] T040 [US2] Implement OpenAI text improvement adapter in `src/AudioTranscriberAI.Api/Infrastructure/OpenAI/OpenAITranscriptImprover.cs`
+- [X] T041 [US2] Add transcript improvement prompt builder in `src/AudioTranscriberAI.Api/Infrastructure/OpenAI/TranscriptImprovementPromptBuilder.cs`
+- [X] T042 [US2] Extend `TranscriptionJobProcessor` in `src/AudioTranscriberAI.Api/Features/Transcriptions/Shared/TranscriptionJobProcessor.cs` to persist `improved.txt` after raw transcription succeeds
+- [X] T043 [US2] Implement improved transcript endpoint `GET /api/transcriptions/{id}/improved` in `src/AudioTranscriberAI.Api/Features/Transcriptions/GetImprovedTranscript/GetImprovedTranscriptEndpoint.cs`
+- [X] T044 [US2] Register US2 concrete services and endpoint in `src/AudioTranscriberAI.Api/Program.cs`
 
 **Checkpoint**: US2 is complete when improved transcripts are persisted, preserve meaning, use `[unclear]` for uncertainty, and `/improved` returns the improved text.
 

@@ -12,10 +12,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AudioTranscriberAI.Tests.Integration;
 
-public sealed class TranscriptionsUploadAndRawTests
+public sealed class ImprovedTranscriptTests
 {
     [Fact]
-    public async Task Upload_returns_accepted_and_raw_endpoint_returns_transcript()
+    public async Task Upload_processes_improvement_and_improved_endpoint_returns_text()
     {
         using var temp = new TempDirectory();
         await using var factory = new TestApiFactory(temp.Path);
@@ -30,28 +30,12 @@ public sealed class TranscriptionsUploadAndRawTests
         using var uploadJson = JsonDocument.Parse(uploadBody);
         var id = uploadJson.RootElement.GetProperty("id").GetString();
 
-        using var rawResponse = await client.GetAsync($"/api/transcriptions/{id}/raw");
-        var raw = await rawResponse.Content.ReadAsStringAsync();
+        using var improvedResponse = await client.GetAsync($"/api/transcriptions/{id}/improved");
+        var improved = await improvedResponse.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.Accepted, uploadResponse.StatusCode);
-        Assert.False(string.IsNullOrWhiteSpace(id));
-        Assert.Equal(HttpStatusCode.OK, rawResponse.StatusCode);
-        Assert.Equal("raw transcript from fake service", raw);
-        Assert.True(Directory.Exists(System.IO.Path.Combine(temp.Path, id!)));
-    }
-
-    [Fact]
-    public async Task Upload_rejects_unsupported_format()
-    {
-        using var temp = new TempDirectory();
-        await using var factory = new TestApiFactory(temp.Path);
-        using var client = factory.CreateClient();
-        using var form = new MultipartFormDataContent();
-        form.Add(new ByteArrayContent(Encoding.UTF8.GetBytes("not audio")), "file", "sample.txt");
-
-        using var response = await client.PostAsync("/api/transcriptions", form);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, improvedResponse.StatusCode);
+        Assert.Equal("Improved transcript from fake service.", improved);
     }
 
     private sealed class TestApiFactory(string storageRoot) : WebApplicationFactory<Program>
@@ -90,6 +74,6 @@ public sealed class TranscriptionsUploadAndRawTests
     private sealed class FakeTranscriptImprover : ITranscriptImprover
     {
         public Task<Result<string>> ImproveAsync(string rawTranscript, CancellationToken cancellationToken) =>
-            Task.FromResult(Result<string>.Success("improved transcript from fake service"));
+            Task.FromResult(Result<string>.Success("Improved transcript from fake service."));
     }
 }

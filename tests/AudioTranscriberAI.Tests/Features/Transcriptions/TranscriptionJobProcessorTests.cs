@@ -23,6 +23,7 @@ public sealed class TranscriptionJobProcessorTests
             storage,
             new FfmpegAudioProcessor(options),
             new FakeTranscriptionService("raw transcript"),
+            new FakeTranscriptImprover("improved transcript"),
             TimeProvider.System);
         await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("fake audio"));
 
@@ -39,6 +40,10 @@ public sealed class TranscriptionJobProcessorTests
         var raw = await storage.ReadTranscriptAsync(result.Value.Id, TranscriptKind.Raw, CancellationToken.None);
         Assert.True(raw.IsSuccess);
         Assert.Equal("raw transcript", raw.Value);
+
+        var improved = await storage.ReadTranscriptAsync(result.Value.Id, TranscriptKind.Improved, CancellationToken.None);
+        Assert.True(improved.IsSuccess);
+        Assert.Equal("improved transcript", improved.Value);
     }
 
     [Fact]
@@ -54,6 +59,7 @@ public sealed class TranscriptionJobProcessorTests
             storage,
             new FfmpegAudioProcessor(options),
             new FailingTranscriptionService(),
+            new FakeTranscriptImprover("improved transcript"),
             TimeProvider.System);
         await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("fake audio"));
 
@@ -80,5 +86,11 @@ public sealed class TranscriptionJobProcessorTests
             Task.FromResult(Result<string>.Failure(TranscriptionError.Processing(
                 "openai.transcription_failed",
                 "The AI transcription service could not process the request. Try again later.")));
+    }
+
+    private sealed class FakeTranscriptImprover(string improvedTranscript) : ITranscriptImprover
+    {
+        public Task<Result<string>> ImproveAsync(string rawTranscript, CancellationToken cancellationToken) =>
+            Task.FromResult(Result<string>.Success(improvedTranscript));
     }
 }

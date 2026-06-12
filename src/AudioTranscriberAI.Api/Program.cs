@@ -1,3 +1,4 @@
+using AudioTranscriberAI.Api.Features.Transcriptions.GetImprovedTranscript;
 using AudioTranscriberAI.Api.Features.Transcriptions.GetRawTranscript;
 using AudioTranscriberAI.Api.Features.Transcriptions.Shared;
 using AudioTranscriberAI.Api.Features.Transcriptions.UploadTranscription;
@@ -21,6 +22,7 @@ builder.Services.AddSingleton<ILocalFileStorage, LocalFileStorage>();
 builder.Services.AddSingleton<IAudioProcessor, FfmpegAudioProcessor>();
 builder.Services.AddScoped<ITranscriptionJobProcessor, TranscriptionJobProcessor>();
 builder.Services.AddHttpClient<ITranscriptionService, OpenAITranscriptionService>();
+builder.Services.AddHttpClient<ITranscriptImprover, OpenAITranscriptImprover>();
 
 builder.Services.AddOptions<TranscriptionOptions>()
     .Bind(builder.Configuration.GetSection(TranscriptionOptions.SectionName))
@@ -52,6 +54,7 @@ app.MapGet("/", () => Results.Redirect("/swagger"))
 
 app.MapUploadTranscription();
 app.MapGetRawTranscript();
+app.MapGetImprovedTranscript();
 
 app.Run();
 

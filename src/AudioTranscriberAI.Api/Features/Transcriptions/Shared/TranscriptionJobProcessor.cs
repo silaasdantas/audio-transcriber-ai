@@ -10,6 +10,7 @@ public sealed class TranscriptionJobProcessor(
     ILocalFileStorage storage,
     IAudioProcessor audioProcessor,
     ITranscriptionService transcriptionService,
+    ITranscriptImprover transcriptImprover,
     TimeProvider timeProvider) : ITranscriptionJobProcessor
 {
     private readonly TranscriptionOptions _options = options.Value;
@@ -79,13 +80,31 @@ public sealed class TranscriptionJobProcessor(
             return await FailAsync(id, rawArtifact.Error!, cancellationToken);
         }
 
+        var improvedTranscript = await transcriptImprover.ImproveAsync(transcript.Value!, cancellationToken);
+        if (!improvedTranscript.IsSuccess)
+        {
+            return await FailAsync(id, improvedTranscript.Error!, cancellationToken);
+        }
+
+        var improvedArtifact = await storage.SaveTranscriptAsync(
+            id,
+            TranscriptKind.Improved,
+            improvedTranscript.Value!,
+            cancellationToken);
+
+        if (!improvedArtifact.IsSuccess)
+        {
+            return await FailAsync(id, improvedArtifact.Error!, cancellationToken);
+        }
+
         var completed = await store.UpdateAsync(
             id,
             current => current with
             {
                 Status = TranscriptionStatus.Completed,
                 UpdatedAtUtc = timeProvider.GetUtcNow(),
-                RawTranscriptPath = rawArtifact.Value!.Path
+                RawTranscriptPath = rawArtifact.Value!.Path,
+                ImprovedTranscriptPath = improvedArtifact.Value!.Path
             },
             cancellationToken);
 
